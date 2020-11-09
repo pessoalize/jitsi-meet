@@ -19,6 +19,7 @@ import {
     pinParticipant
 } from '../../../react/features/base/participants';
 import { isRemoteTrackMuted } from '../../../react/features/base/tracks';
+import Thumbnail from '../../../react/features/filmstrip/components/web/Thumbnail';
 import { PresenceLabel } from '../../../react/features/presence-status';
 import {
     REMOTE_CONTROL_MENU_STATES,
@@ -41,16 +42,6 @@ function createContainer(spanId) {
 
     container.id = spanId;
     container.className = 'videocontainer';
-
-    container.innerHTML = `
-        <div class = 'videocontainer__background'></div>
-        <div class = 'videocontainer__toptoolbar'></div>
-        <div class = 'videocontainer__toolbar'></div>
-        <div class = 'videocontainer__hoverOverlay'></div>
-        <div class = 'displayNameContainer'></div>
-        <div class = 'avatar-container'></div>
-        <div class ='presence-label-container'></div>
-        <span class = 'remotevideomenu'></span>`;
 
     const remoteVideosContainer
         = document.getElementById('filmstripRemoteVideosContainer');
@@ -82,10 +73,7 @@ export default class RemoteVideo extends SmallVideo {
 
         this._audioStreamElement = null;
         this._supportsRemoteControl = false;
-        this.statsPopoverLocation = interfaceConfig.VERTICAL_FILMSTRIP ? 'left bottom' : 'top center';
         this.addRemoteVideoContainer();
-        this.updateIndicators();
-        this.updateDisplayName();
         this.bindHoverHandler();
         this.flipX = false;
         this.isLocal = false;
@@ -117,15 +105,26 @@ export default class RemoteVideo extends SmallVideo {
     addRemoteVideoContainer() {
         this.container = createContainer(this.videoSpanId);
         this.$container = $(this.container);
-        this.initializeAvatar();
+        this.renderThumbnail();
         this._setThumbnailSize();
         this.initBrowserSpecificProperties();
         this.updateRemoteVideoMenu();
-        this.updateStatusBar();
         this.addAudioLevelIndicator();
         this.addPresenceLabel();
 
         return this.container;
+    }
+
+    /**
+     * Renders the thumbnail.
+     */
+    renderThumbnail(isHovered = false) {
+        ReactDOM.render(
+            <Provider store = { APP.store }>
+                <I18nextProvider i18n = { i18next }>
+                    <Thumbnail participantID = { this.id } isHovered = { isHovered } />
+                </I18nextProvider>
+            </Provider>, this.container);
     }
 
     /**
@@ -430,24 +429,6 @@ export default class RemoteVideo extends SmallVideo {
             // slider.
             this.updateRemoteVideoMenu();
         }
-    }
-
-    /**
-     * Triggers re-rendering of the display name using current instance state.
-     *
-     * @returns {void}
-     */
-    updateDisplayName() {
-        if (!this.container) {
-            logger.warn(`Unable to set displayName - ${this.videoSpanId} does not exist`);
-
-            return;
-        }
-
-        this._renderDisplayName({
-            elementID: `${this.videoSpanId}_name`,
-            participantID: this.id
-        });
     }
 
     /**
