@@ -19,6 +19,9 @@ all: compile deploy clean
 compile:
 	$(WEBPACK) -p
 
+docker:
+	docker build . -t pessoalize/jitsi_web:latest
+
 clean:
 	rm -fr $(BUILD_DIR)
 
